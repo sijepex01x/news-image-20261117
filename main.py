@@ -19,8 +19,17 @@ DEST = os.path.join(DEST_DIR, "entry.png")
 
 
 def main():
+    if not os.path.isfile(SOURCE):
+        raise SystemExit("entry.png missing next to main.py")
     os.makedirs(DEST_DIR, exist_ok=True)
-    shutil.copyfile(SOURCE, DEST)
+    # Copy through a temporary file and replace atomically, so a
+    # failed run never leaves a partial /output/entry.png behind.
+    tmp = DEST + ".tmp"
+    shutil.copyfile(SOURCE, tmp)
+    if os.path.getsize(tmp) != os.path.getsize(SOURCE):
+        os.remove(tmp)
+        raise SystemExit("entry.png copy is incomplete")
+    os.replace(tmp, DEST)
 
 
 if __name__ == "__main__":
